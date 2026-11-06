@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dgusto Cafe – Faça seu pedido</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf1e4;--card:#fff9f1;--ink:#3b2314;--muted:#8a6a52;--line:#e7d3bb;--accent:#5a3420;--accent-ink:#fff6ea;--chip:#f1dcc0;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1510;--card:#2a1d15;--ink:#f6e8d6;--muted:#c0a68c;--line:#4a3629;--accent:#e3b98a;--accent-ink:#2a1608;--chip:#3a2819;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1e1510;--card:#2a1d15;--ink:#f6e8d6;--muted:#c0a68c;--line:#4a3629;--accent:#e3b98a;--accent-ink:#2a1608;--chip:#3a2819;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 120px}
+header{text-align:center;padding:12px 0 18px}
+h1{font-family:"Cormorant Garamond",Georgia,serif;font-size:44px;margin:0;letter-spacing:.5px}
+.tag{font-size:12px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+h2{font-family:"Cormorant Garamond",Georgia,serif;font-size:26px;margin:26px 0 8px;padding:6px 14px;background:var(--chip);border-radius:999px}
+.item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px dashed var(--line)}
+.info{flex:1;min-width:0}
+.name{font-weight:600}
+.price{color:var(--muted);font-size:14px}
+select,input,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%}
+.info select{margin-top:6px;padding:6px 8px;font-size:14px}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:34px;height:34px;border-radius:50%;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:20px;line-height:1;cursor:pointer}
+.qty button.add{background:var(--accent);color:var(--accent-ink)}
+.qty span{min-width:18px;text-align:center;font-weight:600}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:26px}
+.box h3{font-family:"Cormorant Garamond",Georgia,serif;font-size:26px;margin:0 0 10px}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:4px 0}
+.total{font-weight:700;font-size:18px;border-top:1px solid var(--line);margin-top:8px;padding-top:10px}
+.seg{display:flex;gap:8px}
+.seg label{flex:1;margin:0;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;cursor:pointer;background:var(--card)}
+.seg input{display:none}
+.seg input:checked+span{font-weight:700}
+.seg label:has(input:checked){border-color:var(--accent);background:var(--chip)}
+.send{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:#1f9d55;color:#fff;font-size:17px;font-weight:700;cursor:pointer}
+.err{color:#c0392b;font-size:14px;margin-top:8px;min-height:18px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line);display:none;z-index:5}
+.bar.on{display:block}
+.bar button{width:100%;max-width:640px;display:flex;justify-content:space-between;margin:0 auto;padding:14px 18px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-size:16px;font-weight:700;cursor:pointer}
+.empty{color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>Dgusto Cafe</h1>
+<div class="tag">Café · Sabor · Momentos</div>
+</header>
+<div id="menu"></div>
+
+<div class="box" id="checkout">
+<h3>Seu pedido</h3>
+<div id="cart"></div>
+<label for="nome">Seu nome</label>
+<input id="nome" autocomplete="name" placeholder="Como podemos te chamar?">
+<label>Como prefere receber?</label>
+<div class="seg">
+<label><input type="radio" name="tipo" value="Retirada" checked><span>Retirada</span></label>
+<label><input type="radio" name="tipo" value="Entrega"><span>Entrega</span></label>
+</div>
+<div id="endBox" style="display:none">
+<label for="end">Endereço completo</label>
+<textarea id="end" rows="2" placeholder="Rua, número, complemento, bairro"></textarea>
+</div>
+<label for="pag">Forma de pagamento</label>
+<select id="pag"><option>Pix</option><option>Cartão</option><option>Dinheiro</option></select>
+<label for="obs">Observações (opcional)</label>
+<textarea id="obs" rows="2" placeholder="Ex.: sem açúcar, trocar sabor…"></textarea>
+<div class="err" id="err"></div>
+<button class="send" id="send">Enviar pedido pelo WhatsApp</button>
+</div>
+</div>
+
+<div class="bar" id="bar"><button id="barBtn"><span id="barQty"></span><span id="barTotal"></span></button></div>
+
+<script>
+var WHATS="551133330760";
+var MENU=[
+{cat:"Bolos e Sobremesas",items:[
+{n:"Bolo Seco",p:6},
+{n:"Bolo Recheado",p:10},
+{n:"Cheesecake ou Torta",p:15,o:["Cheesecake de frutas vermelhas","Torta de limão","Torta holandesa"]}]},
+{cat:"Cafés e Bebidas",items:[
+{n:"Espresso com Chantilly",p:10.9},
+{n:"Espresso sem Chantilly",p:9},
+{n:"Café Coado (180 ml)",p:2.5},
+{n:"Café com Leite (200 ml)",p:3.5},
+{n:"Cappuccino, Caramelo ou Macchiato (200 ml)",p:7.5,o:["Cappuccino","Caramelo","Macchiato"]},
+{n:"Achocolatado (300 ml)",p:5.9},
+{n:"Chá Quente",p:4,d:"Vários sabores – informe o sabor nas observações"},
+{n:"Suco Del Valle",p:8.5},
+{n:"Água",p:5.5,o:["Sem gás","Com gás"]},
+{n:"Bebida Proteica",p:9.5},
+{n:"Yakult",p:4.9}]},
+{cat:"Lanches e Acompanhamentos",items:[
+{n:"Sanduíche Natural",p:12,o:["Frango","Atum","Presunto e queijo com requeijão"]},
+{n:"Salada de Frutas",p:8},
+{n:"Pão de Queijo",p:4.5},
+{n:"Pão de Queijo Recheado",p:6,o:["Catupiry","Goiabada","Doce de Leite","Chocolate"]},
+{n:"Torta de Frango (fatia)",p:15},
+{n:"Danone 170 g",p:6},
+{n:"Pão na Chapa",p:4.5,o:["Manteiga","Requeijão"]}]}
+];
+var ORDEM=["Cafés e Bebidas","Lanches e Acompanhamentos","Bolos e Sobremesas"];
+MENU.sort(function(a,b){return ORDEM.indexOf(a.cat)-ORDEM.indexOf(b.cat)});
+var cart={};
+var $=function(i){return document.getElementById(i)};
+function money(v){return "R$ "+v.toFixed(2).replace(".",",")}
+function key(i,o){return i+"|"+o}
+function build(){
+var h="";
+MENU.forEach(function(c,ci){
+h+="<h2>"+c.cat+"</h2>";
+c.items.forEach(function(it,ii){
+var id=ci+"-"+ii;
+h+='<div class="item"><div class="info"><div class="name">'+it.n+'</div><div class="price">'+money(it.p)+(it.d?" · "+it.d:"")+"</div>";
+if(it.o){h+='<select id="o'+id+'">'+it.o.map(function(x){return "<option>"+x+"</option>"}).join("")+"</select>"}
+h+='</div><div class="qty" id="q'+id+'"></div></div>';
+});
+});
+$("menu").innerHTML=h;
+MENU.forEach(function(c,ci){c.items.forEach(function(it,ii){paint(ci+"-"+ii)})});
+}
+function sel(id){var s=$("o"+id);return s?s.value:""}
+function paint(id){
+var k=key(id,sel(id));var q=cart[k]?cart[k].q:0;
+var box=$("q"+id);
+box.innerHTML=q?'<button data-a="-" data-id="'+id+'">−</button><span>'+q+'</span><button data-a="+" data-id="'+id+'">+</button>':'<button class="add" data-a="+" data-id="'+id+'">+</button>';
+}
+function change(id,d){
+var p=id.split("-"),it=MENU[p[0]].items[p[1]],o=sel(id),k=key(id,o);
+var cur=cart[k]||{id:id,name:it.n,opt:o,price:it.p,q:0};
+cur.q+=d;
+if(cur.q<=0)delete cart[k];else cart[k]=cur;
+paint(id);render();
+}
+function lines(){return Object.keys(cart).map(function(k){return cart[k]})}
+function total(){return lines().reduce(function(s,l){return s+l.price*l.q},0)}
+function render(){
+var L=lines(),n=L.reduce(function(s,l){return s+l.q},0);
+$("cart").innerHTML=L.length?L.map(function(l){
+return '<div class="row"><span>'+l.q+"× "+l.name+(l.opt?" ("+l.opt+")":"")+"</span><span>"+money(l.price*l.q)+"</span></div>"
+}).join("")+'<div class="row total"><span>Total</span><span>'+money(total())+"</span></div>":'<div class="empty">Seu pedido está vazio. Escolha os itens acima.</div>';
+$("bar").className="bar"+(n?" on":"");
+$("barQty").textContent="Ver pedido · "+n+(n===1?" item":" itens");
+$("barTotal").textContent=money(total());
+}
+$("menu").addEventListener("click",function(e){
+var b=e.target.closest("button");if(!b)return;
+change(b.dataset.id,b.dataset.a==="+"?1:-1);
+});
+$("menu").addEventListener("change",function(e){
+if(e.target.tagName==="SELECT")paint(e.target.id.slice(1));
+});
+$("barBtn").addEventListener("click",function(){$("checkout").scrollIntoView({behavior:"smooth"})});
+document.querySelectorAll('input[name="tipo"]').forEach(function(r){
+r.addEventListener("change",function(){$("endBox").style.display=document.querySelector('input[name="tipo"]:checked').value==="Entrega"?"block":"none"});
+});
+$("send").addEventListener("click",function(){
+var L=lines(),nome=$("nome").value.trim(),tipo=document.querySelector('input[name="tipo"]:checked').value,end=$("end").value.trim(),obs=$("obs").value.trim();
+var err="";
+if(!L.length)err="Adicione pelo menos um item ao pedido.";
+else if(!nome)err="Informe seu nome.";
+else if(tipo==="Entrega"&&!end)err="Informe o endereço de entrega.";
+$("err").textContent=err;if(err)return;
+var m="*Novo pedido – Dgusto Cafe*\n\n*Cliente:* "+nome+"\n\n*Itens:*\n";
+L.forEach(function(l){m+="• "+l.q+"× "+l.name+(l.opt?" ("+l.opt+")":"")+" – "+money(l.price*l.q)+"\n"});
+m+="\n*Total:* "+money(total())+"\n*Recebimento:* "+tipo;
+if(tipo==="Entrega")m+="\n*Endereço:* "+end;
+m+="\n*Pagamento:* "+$("pag").value;
+if(obs)m+="\n*Obs.:* "+obs;
+var a=document.createElement("a");
+a.href="https://wa.me/"+WHATS+"?text="+encodeURIComponent(m);
+a.target="_blank";a.rel="noopener";
+document.body.appendChild(a);a.click();a.remove();
+});
+build();render();
+</script>
+</body>
+</html>
